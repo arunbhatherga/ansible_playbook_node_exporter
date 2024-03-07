@@ -5,7 +5,7 @@
   tasks:
 
     - name: Check SELinux status
-      ansible.builtin.shell: getenforce
+      shell: getenforce
       register: selinux_status
       changed_when: false
       ignore_errors: true
