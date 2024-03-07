@@ -3,22 +3,22 @@
   hosts: all
   become: yes
   tasks:
-    - name: Create nodeexporter Group
+    - name: Create node_exporter Group
       group:
-        name: nodeexporter
+        name: node_exporter
         system: yes
 
-    - name: Create nodeexporter User
+    - name: Create node_exporter User
       user:
-        name: nodeexporter
+        name: node_exporter
         system: yes
         createhome: no
         shell: /usr/sbin/nologin
-        group: nodeexporter
+        group: node_exporter
 
     - name: Copy Node Exporter Tarball
       copy:
-        src: /path/node_exporter-1.7.0.linux-amd64.tar.gz
+        src: /home/arunherga/mcx/node_exporter/node_exporter-1.7.0.linux-amd64.tar.gz
         dest: "/tmp/node_exporter-1.7.0.linux-amd64.tar.gz"
 
     - name: Extract Node Exporter
@@ -36,8 +36,8 @@
     - name: Set Node Exporter Directory Permissions
       file:
         path: "/opt/{{ node_exporter_directory.stdout }}"
-        owner: nodeexporter
-        group: nodeexporter
+        owner: node_exporter
+        group: node_exporter
         recurse: yes
 
     - name: Create Node Exporter Systemd File
@@ -46,17 +46,16 @@
         content: |
           [Unit]
           Description=Node Exporter
-          Wants=network-online.target
-          After=network-online.target
+          After=network.target
 
           [Service]
-          User=nodeexporter
-          Group=nodeexporter
+          User=node_exporter
+          Group=node_exporter
           Type=simple
           ExecStart=/opt/{{ node_exporter_directory.stdout }}/node_exporter
 
           [Install]
-          WantedBy=multi-user.target
+          WantedBy=multi.target
 
     - name: Reload Systemd Daemon
       systemd:
