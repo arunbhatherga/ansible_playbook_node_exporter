@@ -1,0 +1,69 @@
+---
+- name: Install Prometheus Node Exporter
+  hosts: all
+  become: yes
+  tasks:
+    - name: Create nodeexporter Group
+      group:
+        name: nodeexporter
+        system: yes
+
+    - name: Create nodeexporter User
+      user:
+        name: nodeexporter
+        system: yes
+        createhome: no
+        shell: /usr/sbin/nologin
+        group: nodeexporter
+
+    - name: Copy Node Exporter Tarball
+      copy:
+        src: /path/node_exporter-1.7.0.linux-amd64.tar.gz
+        dest: "/tmp/node_exporter-1.7.0.linux-amd64.tar.gz"
+
+    - name: Extract Node Exporter
+      unarchive:
+        src: "/tmp/node_exporter-1.7.0.linux-amd64.tar.gz"
+        dest: "/opt"
+        remote_src: yes
+        creates: "/opt/node_exporter-*/node_exporter"
+
+    - name: Find Node Exporter Directory
+      shell: ls /opt | grep node_exporter-
+      register: node_exporter_directory
+      changed_when: false
+
+    - name: Set Node Exporter Directory Permissions
+      file:
+        path: "/opt/{{ node_exporter_directory.stdout }}"
+        owner: nodeexporter
+        group: nodeexporter
+        recurse: yes
+
+    - name: Create Node Exporter Systemd File
+      copy:
+        dest: "/etc/systemd/system/node_exporter.service"
+        content: |
+          [Unit]
+          Description=Node Exporter
+          Wants=network-online.target
+          After=network-online.target
+
+          [Service]
+          User=nodeexporter
+          Group=nodeexporter
+          Type=simple
+          ExecStart=/opt/{{ node_exporter_directory.stdout }}/node_exporter
+
+          [Install]
+          WantedBy=multi-user.target
+
+    - name: Reload Systemd Daemon
+      systemd:
+        daemon_reload: yes
+
+    - name: Enable and Start Node Exporter Service
+      systemd:
+        name: node_exporter
+        enabled: yes
+        state: started
