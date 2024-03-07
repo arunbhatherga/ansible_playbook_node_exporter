@@ -3,6 +3,18 @@
   hosts: all
   become: yes
   tasks:
+
+    - name: Check SELinux status
+      ansible.builtin.shell: getenforce
+      register: selinux_status
+      changed_when: false
+      ignore_errors: true
+
+    - name: Fail if SELinux is enforcing
+      fail:
+        msg: "SELinux is Enforcing, which will cause Node Exporter service to fail."
+      when: selinux_status.stdout == "Enforcing"
+
     - name: Create node_exporter Group
       group:
         name: node_exporter
@@ -18,7 +30,7 @@
 
     - name: Copy Node Exporter Tarball
       copy:
-        src: /home/arunherga/mcx/node_exporter/node_exporter-1.7.0.linux-amd64.tar.gz
+        src: "{{ node_exporter_tarball_path }}"
         dest: "/tmp/node_exporter-1.7.0.linux-amd64.tar.gz"
 
     - name: Extract Node Exporter
