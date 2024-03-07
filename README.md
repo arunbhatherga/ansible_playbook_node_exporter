@@ -9,4 +9,4 @@ Run install_node_exporter.sh to install node exporter in the host
 
 Node exporter will be exposed in 9100 port by default 
 
-run curl command to verify installation curl http://<hostname>:9100/metrics
+run curl command to verify installation curl http://hostname:9100/metrics
