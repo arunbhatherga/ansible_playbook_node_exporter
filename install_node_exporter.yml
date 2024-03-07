@@ -13,7 +13,7 @@
 
     - name: Fail if SELinux is enforcing
       fail:
-        msg: "SELinux is Enforcing, which will cause Node Exporter service to fail."
+        msg: "SELinux is in not disabled, which will cause Node Exporter service to fail."
       when: selinux_status.stdout == "Enforcing"
 
     - name: Create node_exporter Group
@@ -65,7 +65,7 @@
           User=node_exporter
           Group=node_exporter
           Type=simple
-          ExecStart=/opt/{{ node_exporter_directory.stdout }}/node_exporter
+          ExecStart=/opt/{{ node_exporter_directory.stdout }}/node_exporter --web.listen-address=:9111
 
           [Install]
           WantedBy=multi.target
